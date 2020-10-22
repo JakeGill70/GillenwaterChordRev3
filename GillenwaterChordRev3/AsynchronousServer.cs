@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GillenwaterChordRev3
 {
-    class SynchronousServer
+    class AsynchronousServer
     {
         
         public readonly int port;
@@ -21,7 +22,9 @@ namespace GillenwaterChordRev3
 
         private bool isServerRunning;
 
-        public SynchronousServer(int port) {
+        ConcurrentQueue<string> messages;
+
+        public AsynchronousServer(int port) {
             // Establish the local endpoint for the socket.  
             // Dns.GetHostName returns the name of the
             // host running the application.  
@@ -30,6 +33,8 @@ namespace GillenwaterChordRev3
             localEndPoint = new IPEndPoint(ipAddress, port);
             this.port = port;
             this.isServerRunning = false;
+
+            this.messages = new ConcurrentQueue<string>();
 
             // Create a TCP/IP socket.  
             listener = new Socket(ipAddress.AddressFamily,
@@ -42,7 +47,7 @@ namespace GillenwaterChordRev3
             listener.Close();
         }
 
-        public void StartServer() {
+        public async Task StartServerAsync() {
             listener.Bind(localEndPoint);
             listener.Listen(10);
 
@@ -53,24 +58,27 @@ namespace GillenwaterChordRev3
                 OutputManager.Server.Write("Waiting for a connection...");
                 // Program is suspended while waiting for an incoming connection.  
                 Socket handler = listener.Accept();
-                OutputManager.Server.Write("New Hander at: " + handler.RemoteEndPoint.ToString());
+                OutputManager.Server.Write("New Handler at: " + handler.RemoteEndPoint.ToString());
 
-                string received = readData(handler);
-
-                // Show the data on the console.  
-                OutputManager.Server.Write($"Text received : {rece}");
-
-                string response = ProcessMsg(received);
-
-                sendMsg(handler, response);
+                _ = ConnectionHandlerAsync(handler);
             }
         }
 
-        private string ProcessMsg(string msg) {
+        private async Task ConnectionHandlerAsync(Socket handler) {
+            while (true)
+            {
+                string request = await readDataAsync(handler);
+                OutputManager.Server.Write("Request: " + request);
+                string response = await ProcessMsgAsync(request);
+                await sendMsgAsync(handler, response);
+            }
+        }
+
+        private async Task<string> ProcessMsgAsync(string msg) {
             return msg;
         }
 
-        private void sendMsg(Socket handler, string msg)
+        private async Task sendMsgAsync(Socket handler, string msg)
         {
             msg += "<EOF>";
 
@@ -80,7 +88,7 @@ namespace GillenwaterChordRev3
             handler.Send(msgBuffer);
         }
 
-        private string readData(Socket handler)
+        private async Task<string> readDataAsync(Socket handler)
         {
 
             // Data buffer for incoming data.  

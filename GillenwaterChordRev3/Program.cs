@@ -6,15 +6,15 @@ namespace GillenwaterChordRev3
     class Program
     {
         
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             int serverPort = 5000 + EZRandom.Next(0, 999);
             OutputManager.Ui.Write("Node Server Port: " + serverPort);
-            SynchronousServer serverComponent = new SynchronousServer(serverPort);
-            SynchronousClient clientComponent = new SynchronousClient();
+            AsynchronousServer serverComponent = new AsynchronousServer(serverPort);
+            AsynchronousClient clientComponent = new AsynchronousClient();
 
             OutputManager.Ui.Write("Starting server...");
-            Task serverTask = Task.Run(() => serverComponent.StartServer());
+            var serverTask = Task.Run(() => serverComponent.StartServerAsync());
             OutputManager.Ui.Write("Server started.");
 
             OutputManager.Ui.Write("Node to connect to: ");
@@ -28,10 +28,18 @@ namespace GillenwaterChordRev3
             clientComponent.StartClient(nodeAddr, nodePort);
             OutputManager.Ui.Write("Client started.");
 
-            OutputManager.Ui.Write("What to send?");
-            string data = Console.ReadLine();
-            string response = clientComponent.sendMsg(data);
-            OutputManager.Ui.Write("Response: " + response);
+            while (true)
+            {
+                OutputManager.Ui.Write("What to send?");
+                string data = Console.ReadLine();
+
+                if (data.ToLower().Equals("exit")) {
+                    break;
+                }
+
+                string response = await clientComponent.sendMsgAsync(data);
+                OutputManager.Ui.Write("Response: " + response);
+            }
 
             Console.ReadLine();
             clientComponent.Disconnect();

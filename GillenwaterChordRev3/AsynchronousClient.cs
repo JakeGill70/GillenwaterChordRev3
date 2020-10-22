@@ -2,10 +2,11 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace GillenwaterChordRev3
 {
-    public class SynchronousClient
+    public class AsynchronousClient
     {
         IPHostEntry ipHostInfo;
         IPAddress ipAddress;
@@ -56,7 +57,7 @@ namespace GillenwaterChordRev3
             }
         }
 
-        public string sendMsg(string msg)
+        public async Task<string> sendMsgAsync(string msg)
         {
             try
             {
@@ -68,10 +69,9 @@ namespace GillenwaterChordRev3
                 // Send the data through the socket.  
                 int bytesSent = sender.Send(msgBuffer);
 
-                string response = this.ReadMsg();
+                string response = await ReadMsgAsync();
 
                 return response;
-
             }
             catch (ArgumentNullException ane)
             {
@@ -85,10 +85,10 @@ namespace GillenwaterChordRev3
             {
                 Console.Error.WriteLine("Unexpected exception : {0}", e.ToString());
             }
-            return String.Empty;
+            return string.Empty;
         }
 
-        public string ReadMsg()
+        public async Task<string> ReadMsgAsync()
         {
             try
             {
