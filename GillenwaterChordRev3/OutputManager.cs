@@ -28,8 +28,7 @@ namespace GillenwaterChordRev3
         {
             public void Write(object obj)
             {
-                Console.ForegroundColor = OutputManager.defaultFg;
-                Console.BackgroundColor = OutputManager.defaultBg;
+                Console.ResetColor();
                 Console.WriteLine(obj.ToString());
             }
         }
@@ -38,10 +37,10 @@ namespace GillenwaterChordRev3
         {
             public void Write(object obj)
             {
-                Console.ResetColor();
+                
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write("Server:\t\t");
-                Console.BackgroundColor = OutputManager.defaultBg;
+                Console.ResetColor();
                 Console.WriteLine(obj.ToString());
             }
         }
@@ -53,7 +52,7 @@ namespace GillenwaterChordRev3
                 Console.ResetColor();
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.Write("Client:\t\t");
-                Console.BackgroundColor = OutputManager.defaultBg;
+                Console.ResetColor();
                 Console.WriteLine(obj.ToString());
             }
         }
