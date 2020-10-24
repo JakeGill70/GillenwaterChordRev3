@@ -13,6 +13,7 @@ namespace GillenwaterChordRev3
         IPEndPoint remoteEP;
         Socket sender;
 
+        // Connect to Asynchronous Server component on remote node
         public void StartClient(string serverIP, int serverPort)
         {
             // Data buffer for incoming data.  
@@ -57,6 +58,7 @@ namespace GillenwaterChordRev3
             }
         }
 
+        // Send a message to the remote node
         public async Task<string> sendMsgAsync(string msg)
         {
             try
@@ -88,7 +90,10 @@ namespace GillenwaterChordRev3
             return string.Empty;
         }
 
+        // Read a response message from the remote node
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task<string> ReadMsgAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             try
             {
@@ -118,11 +123,15 @@ namespace GillenwaterChordRev3
             return String.Empty;
         }
 
+        // Disconnect from the remote node
         public void Disconnect()
         {
-            // Release the socket.  
-            sender.Shutdown(SocketShutdown.Both);
-            sender.Close();
+            // Release the socket. 
+            if (sender.Connected)
+            {
+                sender.Shutdown(SocketShutdown.Both);
+                sender.Close();
+            }
         }
 
     }

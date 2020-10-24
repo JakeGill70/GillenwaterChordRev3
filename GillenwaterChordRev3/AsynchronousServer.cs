@@ -47,7 +47,9 @@ namespace GillenwaterChordRev3
             listener.Close();
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task StartServerAsync() {
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             listener.Bind(localEndPoint);
             listener.Listen(10);
 
@@ -74,12 +76,16 @@ namespace GillenwaterChordRev3
             }
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async Task<Message> ProcessMsgAsync(Message msg) {
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             msg["Processed"] = true.ToString();
             return msg;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async Task sendMsgAsync(Socket handler, Message msg)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             string data = msg.ToString();
             data += "<EOF>";
@@ -90,7 +96,9 @@ namespace GillenwaterChordRev3
             handler.Send(msgBuffer);
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async Task<Message> readDataAsync(Socket handler)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
 
             // Data buffer for incoming data.  

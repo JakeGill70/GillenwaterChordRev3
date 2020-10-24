@@ -5,8 +5,10 @@ using System.Text;
 
 namespace GillenwaterChordRev3
 {
+    // Offers a simplified interface for creating a hash string based on a string input.
     public class EZHash
     {
+        // Get the hash of a string as a string
         public static string GetHashString(string inputString)
         {
             // Get the hash of the string

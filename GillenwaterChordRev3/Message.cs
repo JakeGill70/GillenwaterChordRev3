@@ -5,6 +5,7 @@ using System.Text.Json;
 
 namespace GillenwaterChordRev3
 {
+    // Represents a message sent between nodes
     public class Message
     {
         public readonly string senderID;
