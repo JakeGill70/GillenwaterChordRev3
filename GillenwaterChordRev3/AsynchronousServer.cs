@@ -67,28 +67,30 @@ namespace GillenwaterChordRev3
         private async Task ConnectionHandlerAsync(Socket handler) {
             while (true)
             {
-                string request = await readDataAsync(handler);
+                Message request = await readDataAsync(handler);
                 OutputManager.Server.Write("Request: " + request);
-                string response = await ProcessMsgAsync(request);
+                Message response = await ProcessMsgAsync(request);
                 await sendMsgAsync(handler, response);
             }
         }
 
-        private async Task<string> ProcessMsgAsync(string msg) {
+        private async Task<Message> ProcessMsgAsync(Message msg) {
+            msg["Processed"] = true.ToString();
             return msg;
         }
 
-        private async Task sendMsgAsync(Socket handler, string msg)
+        private async Task sendMsgAsync(Socket handler, Message msg)
         {
-            msg += "<EOF>";
+            string data = msg.ToString();
+            data += "<EOF>";
 
             // Echo the data back to the client.  
-            byte[] msgBuffer = Encoding.ASCII.GetBytes(msg);
+            byte[] msgBuffer = Encoding.ASCII.GetBytes(data);
 
             handler.Send(msgBuffer);
         }
 
-        private async Task<string> readDataAsync(Socket handler)
+        private async Task<Message> readDataAsync(Socket handler)
         {
 
             // Data buffer for incoming data.  
@@ -110,7 +112,9 @@ namespace GillenwaterChordRev3
             // Remove <EOF>
             data = data.Substring(0, data.Length - "<EOF>".Length);
 
-            return data;
+            Message msg = new Message(data);
+
+            return msg;
         }
     }
 }

@@ -8,14 +8,9 @@ namespace GillenwaterChordRev3
         
         static async Task Main(string[] args)
         {
-            int serverPort = 5000 + EZRandom.Next(0, 999);
-            OutputManager.Ui.Write("Node Server Port: " + serverPort);
-            AsynchronousServer serverComponent = new AsynchronousServer(serverPort);
-            AsynchronousClient clientComponent = new AsynchronousClient();
-
-            OutputManager.Ui.Write("Starting server...");
-            var serverTask = Task.Run(() => serverComponent.StartServerAsync());
-            OutputManager.Ui.Write("Server started.");
+            int localServerPort = 5000 + EZRandom.Next(0, 999);
+            OutputManager.Ui.Write("Node Server Port: " + localServerPort);
+            LocalNode localNode = new LocalNode(localServerPort);
 
             OutputManager.Ui.Write("Node to connect to: ");
             string nodeAddr = "127.0.0.1"; // Console.ReadLine();
@@ -24,9 +19,9 @@ namespace GillenwaterChordRev3
             OutputManager.Ui.Write("Port to connect to: ");
             int nodePort = int.Parse(Console.ReadLine());
 
-            OutputManager.Ui.Write("Starting client...");
-            clientComponent.StartClient(nodeAddr, nodePort);
-            OutputManager.Ui.Write("Client started.");
+            OutputManager.Ui.Write("Connecting to remote node...");
+            localNode.ConnectToNode(nodeAddr, nodePort);
+            OutputManager.Ui.Write("Connected");
 
             while (true)
             {
@@ -37,13 +32,13 @@ namespace GillenwaterChordRev3
                     break;
                 }
 
-                string response = await clientComponent.sendMsgAsync(data);
+                Message msg = localNode.StartMessage(MessageType.Testing);
+                msg["TestData"] = data;
+                Message response = await localNode.SendMessage(msg);
                 OutputManager.Ui.Write("Response: " + response);
             }
 
-            Console.ReadLine();
-            clientComponent.Disconnect();
-            serverComponent.StopServer(); // Hos to stop server???
+            localNode.DisconnectFromNode();
         }
     }
 }

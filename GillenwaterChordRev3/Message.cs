@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace GillenwaterChordRev3
 {
-    class Message
+    public class Message
     {
         public readonly string senderID;
         public readonly string senderIpAddress;

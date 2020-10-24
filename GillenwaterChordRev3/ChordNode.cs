@@ -17,12 +17,4 @@ namespace GillenwaterChordRev3
         }
 
     }
-
-    public class LocalNode : ChordNode
-    {
-        public LocalNode(string ip, int port) : base(ip, port)
-        {
-
-        }
-    }
 }
