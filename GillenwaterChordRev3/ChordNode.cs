@@ -15,6 +15,9 @@ namespace GillenwaterChordRev3
             this.ipAddress = ip;
             this.port = port;
         }
+
+    }
+
     public class LocalNode : ChordNode
     {
         public LocalNode(string ip, int port) : base(ip, port)
