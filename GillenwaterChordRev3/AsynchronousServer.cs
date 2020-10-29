@@ -14,15 +14,13 @@ namespace GillenwaterChordRev3
         
         public readonly int port;
 
-        private IPHostEntry ipHostInfo;
-        private IPAddress ipAddress;
-        private IPEndPoint localEndPoint;
+        private readonly IPHostEntry ipHostInfo;
+        private readonly IPAddress ipAddress;
+        private readonly IPEndPoint localEndPoint;
 
-        private Socket listener;
+        private readonly Socket listener;
 
         private bool isServerRunning;
-
-        ConcurrentQueue<string> messages;
 
         public AsynchronousServer(int port) {
             // Establish the local endpoint for the socket.  
@@ -33,8 +31,6 @@ namespace GillenwaterChordRev3
             localEndPoint = new IPEndPoint(ipAddress, port);
             this.port = port;
             this.isServerRunning = false;
-
-            this.messages = new ConcurrentQueue<string>();
 
             // Create a TCP/IP socket.  
             listener = new Socket(ipAddress.AddressFamily,
@@ -69,10 +65,10 @@ namespace GillenwaterChordRev3
         private async Task ConnectionHandlerAsync(Socket handler) {
             while (true)
             {
-                Message request = await readDataAsync(handler);
+                Message request = await ReadDataAsync(handler);
                 OutputManager.Server.Write("Request: " + request);
                 Message response = await ProcessMsgAsync(request);
-                await sendMsgAsync(handler, response);
+                await SendMsgAsync(handler, response);
             }
         }
 
@@ -84,7 +80,7 @@ namespace GillenwaterChordRev3
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private async Task sendMsgAsync(Socket handler, Message msg)
+        private async Task SendMsgAsync(Socket handler, Message msg)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             string data = msg.ToString();
@@ -97,7 +93,7 @@ namespace GillenwaterChordRev3
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private async Task<Message> readDataAsync(Socket handler)
+        private async Task<Message> ReadDataAsync(Socket handler)
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
 

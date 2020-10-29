@@ -6,7 +6,7 @@ namespace GillenwaterChordRev3
     class Program
     {
         
-        static async Task Main(string[] args)
+        static async Task Main()
         {
             // Determine the port this node will operate on
             int localServerPort = 5000 + EZRandom.Next(0, 999);

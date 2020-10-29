@@ -14,10 +14,10 @@ namespace GillenwaterChordRev3
     public class LocalNode : ChordNode
     {
         // Component responsible for receiving messages from remote nodes
-        AsynchronousServer serverComponent;
+        readonly AsynchronousServer serverComponent;
 
         // Component responsible for sending messages to remote nodes
-        AsynchronousClient clientComponent;
+        readonly AsynchronousClient clientComponent;
 
         // string localIpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString()
         public LocalNode(int port) : base(Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString(), port)
@@ -45,7 +45,7 @@ namespace GillenwaterChordRev3
 
         // Send a Message to a remote node
         public async Task<Message> SendMessage(Message msg) {
-            string responseData = await clientComponent.sendMsgAsync(msg.ToString());
+            string responseData = await clientComponent.SendMsgAsync(msg.ToString());
             Message responseMsg = new Message(responseData);
             return responseMsg;
         }

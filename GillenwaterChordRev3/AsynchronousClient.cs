@@ -16,8 +16,6 @@ namespace GillenwaterChordRev3
         // Connect to Asynchronous Server component on remote node
         public void StartClient(string serverIP, int serverPort)
         {
-            // Data buffer for incoming data.  
-            byte[] bytes = new byte[1024];
 
             // Connect to a remote device.  
             try
@@ -59,7 +57,7 @@ namespace GillenwaterChordRev3
         }
 
         // Send a message to the remote node
-        public async Task<string> sendMsgAsync(string msg)
+        public async Task<string> SendMsgAsync(string msg)
         {
             try
             {
