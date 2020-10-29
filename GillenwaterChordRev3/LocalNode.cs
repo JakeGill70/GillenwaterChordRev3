@@ -51,7 +51,18 @@ namespace GillenwaterChordRev3
 
         public async Task<Message> ProcessMsgAsync(Message msg)
         {
-            msg["processed"] = true.ToString();
+            if (msg.senderID.Equals(this.Id))
+            {
+                OutputManager.Ui.Write("Request could not find target.");
+                msg["processed"] = false.ToString();
+            }
+            else if (msg["target"].Equals(this.Port.ToString()))
+            {
+                msg["processed"] = true.ToString();
+            }
+            else {
+                msg = await this.clientComponent.SendMsgAsync(msg);
+            }
             return msg;
         }
     }

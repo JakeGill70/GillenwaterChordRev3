@@ -43,6 +43,8 @@ namespace GillenwaterChordRev3
                 Message msg = localNode.CreateMessage(MessageType.Testing);
                 // Package the test data
                 msg["TestData"] = data;
+                OutputManager.Ui.Write("Port of the target?");
+                msg["target"] = Console.ReadLine().Trim();
                 // Send the message and get the response
                 Message response = await localNode.SendMessage(msg);
                 // Display the response
