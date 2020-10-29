@@ -7,18 +7,13 @@ namespace GillenwaterChordRev3
     // Responsible for outputting information from various sources.
     public class OutputManager
     {
-        protected static ConsoleColor defaultBg = ConsoleColor.Black;
-        protected static ConsoleColor defaultFg = ConsoleColor.White;
-
+        // References to the different output locations
         public static IWriter Ui = new UiWriter();
         public static IWriter Server = new ServerInfoWriter();
         public static IWriter Client = new ClientInfoWriter();
 
-        public static void UpdateDefaults()
-        {
-            defaultBg = ConsoleColor.Black;
-            defaultFg = ConsoleColor.White;
-        }
+        // Lock object used to protect access to the console when writing directly to the console
+        public static object __lockObj = new object();
 
         // Exportable interface for objects that write output
         public interface IWriter
@@ -32,8 +27,11 @@ namespace GillenwaterChordRev3
         {
             public void Write(object obj)
             {
-                Console.ResetColor();
-                Console.WriteLine(obj.ToString());
+                lock (__lockObj)
+                {
+                    Console.ResetColor();
+                    Console.WriteLine(obj.ToString());
+                }
             }
         }
 
@@ -43,11 +41,13 @@ namespace GillenwaterChordRev3
         {
             public void Write(object obj)
             {
-                
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("Server:\t\t");
-                Console.ResetColor();
-                Console.WriteLine(obj.ToString());
+                lock (__lockObj)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("Server:\t\t");
+                    Console.ResetColor();
+                    Console.WriteLine(obj.ToString());
+                }
             }
         }
 
@@ -57,11 +57,14 @@ namespace GillenwaterChordRev3
         {
             public void Write(object obj)
             {
-                Console.ResetColor();
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write("Client:\t\t");
-                Console.ResetColor();
-                Console.WriteLine(obj.ToString());
+                lock (__lockObj)
+                {
+                    Console.ResetColor();
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.Write("Client:\t\t");
+                    Console.ResetColor();
+                    Console.WriteLine(obj.ToString());
+                }
             }
         }
     }
