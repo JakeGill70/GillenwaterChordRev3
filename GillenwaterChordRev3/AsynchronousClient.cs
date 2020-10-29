@@ -57,19 +57,20 @@ namespace GillenwaterChordRev3
         }
 
         // Send a message to the remote node
-        public async Task<string> SendMsgAsync(string msg)
+        public async Task<Message> SendMsgAsync(Message msg)
         {
             try
             {
-                msg += "<EOF>";
+                string data = msg.ToString();
+                data += "<EOF>";
 
                 // Encode the data string into a byte array.  
-                byte[] msgBuffer = Encoding.ASCII.GetBytes(msg);
+                byte[] msgBuffer = Encoding.ASCII.GetBytes(data);
 
                 // Send the data through the socket.  
                 int bytesSent = sender.Send(msgBuffer);
 
-                string response = await ReadMsgAsync();
+                Message response = await ReadMsgAsync();
 
                 return response;
             }
@@ -85,13 +86,11 @@ namespace GillenwaterChordRev3
             {
                 Console.Error.WriteLine("Unexpected exception : {0}", e.ToString());
             }
-            return string.Empty;
+            return null;
         }
 
         // Read a response message from the remote node
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        public async Task<string> ReadMsgAsync()
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        public async Task<Message> ReadMsgAsync()
         {
             try
             {
@@ -100,12 +99,14 @@ namespace GillenwaterChordRev3
 
                 // Receive the response from the remote device.  
                 int bytesRec = sender.Receive(bytes);
-                string msg = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                string msgData = Encoding.ASCII.GetString(bytes, 0, bytesRec);
 
                 // Remove <EOF>
-                msg = msg.Substring(0, msg.Length - "<EOF>".Length);
+                msgData = msgData.Substring(0, msgData.Length - "<EOF>".Length);
 
-                OutputManager.Client.Write("Received: " + msg);
+                OutputManager.Client.Write("Received: " + msgData);
+
+                Message msg = new Message(msgData);
 
                 return msg;
 
@@ -118,7 +119,7 @@ namespace GillenwaterChordRev3
             {
                 Console.Error.WriteLine("Unexpected exception : {0}", e.ToString());
             }
-            return String.Empty;
+            return null;
         }
 
         // Disconnect from the remote node

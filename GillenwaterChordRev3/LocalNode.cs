@@ -11,7 +11,7 @@ namespace GillenwaterChordRev3
 {
     // Abstracts the Chord Node on this machine
     // Simplifies the management of server and client components
-    public class LocalNode : ChordNode
+    public class LocalNode : ChordNode, IMessageProcessor
     {
         // Component responsible for receiving messages from remote nodes
         readonly AsynchronousServer serverComponent;
@@ -22,7 +22,7 @@ namespace GillenwaterChordRev3
         // string localIpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString()
         public LocalNode(int port) : base(Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString(), port)
         {
-            serverComponent = new AsynchronousServer(port);
+            serverComponent = new AsynchronousServer(port, this);
             clientComponent = new AsynchronousClient();
             var serverTask = Task.Run(() => serverComponent.StartServerAsync());
         }
@@ -40,14 +40,19 @@ namespace GillenwaterChordRev3
         // Creates a new Message object with some necessary fields
         // automatically populated
         public Message CreateMessage(MessageType type) {
-            return new Message(this.id, this.ipAddress, this.port, type.ToString());
+            return new Message(this.Id, this.IpAddress, this.Port, type.ToString());
         }
 
         // Send a Message to a remote node
         public async Task<Message> SendMessage(Message msg) {
-            string responseData = await clientComponent.SendMsgAsync(msg.ToString());
-            Message responseMsg = new Message(responseData);
+            Message responseMsg = await clientComponent.SendMsgAsync(msg);
             return responseMsg;
+        }
+
+        public async Task<Message> ProcessMsgAsync(Message msg)
+        {
+            msg["processed"] = true.ToString();
+            return msg;
         }
     }
 }

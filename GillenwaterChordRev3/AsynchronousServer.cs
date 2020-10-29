@@ -20,9 +20,11 @@ namespace GillenwaterChordRev3
 
         private readonly Socket listener;
 
+        private readonly IMessageProcessor msgProcessor;
+
         private bool isServerRunning;
 
-        public AsynchronousServer(int port) {
+        public AsynchronousServer(int port, IMessageProcessor msgProcessor) {
             // Establish the local endpoint for the socket.  
             // Dns.GetHostName returns the name of the
             // host running the application.  
@@ -31,6 +33,7 @@ namespace GillenwaterChordRev3
             localEndPoint = new IPEndPoint(ipAddress, port);
             this.port = port;
             this.isServerRunning = false;
+            this.msgProcessor = msgProcessor;
 
             // Create a TCP/IP socket.  
             listener = new Socket(ipAddress.AddressFamily,
@@ -43,9 +46,7 @@ namespace GillenwaterChordRev3
             listener.Close();
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task StartServerAsync() {
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             listener.Bind(localEndPoint);
             listener.Listen(10);
 
@@ -67,21 +68,12 @@ namespace GillenwaterChordRev3
             {
                 Message request = await ReadDataAsync(handler);
                 OutputManager.Server.Write("Request: " + request);
-                Message response = await ProcessMsgAsync(request);
+                Message response = await this.msgProcessor.ProcessMsgAsync(request);
                 await SendMsgAsync(handler, response);
             }
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private async Task<Message> ProcessMsgAsync(Message msg) {
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-            msg["Processed"] = true.ToString();
-            return msg;
-        }
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async Task SendMsgAsync(Socket handler, Message msg)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             string data = msg.ToString();
             data += "<EOF>";
@@ -92,9 +84,7 @@ namespace GillenwaterChordRev3
             handler.Send(msgBuffer);
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async Task<Message> ReadDataAsync(Socket handler)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
 
             // Data buffer for incoming data.  
