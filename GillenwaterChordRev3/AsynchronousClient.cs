@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using GillenwaterChordRev3.Messages;
 
 namespace GillenwaterChordRev3
 {

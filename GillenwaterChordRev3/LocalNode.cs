@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GillenwaterChordRev3.Messages;
 
 namespace GillenwaterChordRev3
 {
@@ -40,7 +41,7 @@ namespace GillenwaterChordRev3
         // Creates a new Message object with some necessary fields
         // automatically populated
         public Message CreateMessage(MessageType type) {
-            return new Message(this.Id, this.IpAddress, this.Port, type.ToString());
+            return new Message(this.Id, this.IpAddress, this.Port, type);
         }
 
         // Send a Message to a remote node
@@ -49,20 +50,35 @@ namespace GillenwaterChordRev3
             return responseMsg;
         }
 
+        // Process incoming messages and craft an appropriate response
         public async Task<Message> ProcessMsgAsync(Message msg)
         {
-            if (msg.senderID.Equals(this.Id))
+            // If the "target" parameter exists - used for testing purposes
+            if (msg["target"].Equals(string.Empty))
             {
-                OutputManager.Ui.Write("Request could not find target.");
-                msg["processed"] = false.ToString();
+                if (msg.senderID.Equals(this.Id))
+                {
+                    OutputManager.Ui.Write("Request could not find target.");
+                    msg["processed"] = false.ToString();
+                }
+                else if (msg["target"].Equals(this.Port.ToString()))
+                {
+                    msg["processed"] = true.ToString();
+                }
+                else
+                {
+                    msg = await this.clientComponent.SendMsgAsync(msg);
+                }
             }
-            else if (msg["target"].Equals(this.Port.ToString()))
-            {
-                msg["processed"] = true.ToString();
+
+            if (msg.messageType == MessageType.AddResourceRequest) {
+                Messages.ResourceOwnerRequest rorMsg = (msg as Messages.ResourceOwnerRequest);
+                if (string.Compare(this.Id, rorMsg.resourceId) < 0)
+                {
+                    msg = new Messages.ResourceOwnerResponse(this, rorMsg.resourceId, this);
+                }
             }
-            else {
-                msg = await this.clientComponent.SendMsgAsync(msg);
-            }
+
             return msg;
         }
     }

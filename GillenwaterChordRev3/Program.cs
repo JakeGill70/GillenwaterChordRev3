@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+using GillenwaterChordRev3.Messages;
 
 namespace GillenwaterChordRev3
 {
     class Program
     {
-        
         static async Task Main()
         {
             // Determine the port this node will operate on

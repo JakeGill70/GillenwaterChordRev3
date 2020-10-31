@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 
-namespace GillenwaterChordRev3
+namespace GillenwaterChordRev3.Messages
 {
     // Represents a message sent between nodes
     public class Message
@@ -11,7 +11,7 @@ namespace GillenwaterChordRev3
         public readonly string senderID;
         public readonly string senderIpAddress;
         public readonly int senderPort;
-        public readonly string messageType;
+        public readonly MessageType messageType;
         private Dictionary<string, string> content;
 
         public string this[string key] {
@@ -37,10 +37,19 @@ namespace GillenwaterChordRev3
             this.senderID = content["senderid"];
             this.senderIpAddress = content["senderipaddress"];
             this.senderPort = int.Parse(content["senderport"]);
-            this.messageType = content["messagetype"];
+            this.messageType = (MessageType) Enum.Parse(typeof(MessageType), content["messagetype"]);
         }
 
-        public Message(string id, string ipAddr, int port, string msgType) {
+        public Message(ChordNode senderNode, MessageType msgType)
+        {
+            this.content = new Dictionary<string, string>();
+            this.senderID = senderNode.Id;
+            this.senderIpAddress = senderNode.IpAddress;
+            this.senderPort = senderNode.Port;
+            this.messageType = msgType;
+        }
+
+        public Message(string id, string ipAddr, int port, MessageType msgType) {
             this.content = new Dictionary<string, string>();
             this.senderID = id;
             this.senderIpAddress = ipAddr;
@@ -50,10 +59,10 @@ namespace GillenwaterChordRev3
 
         public override string ToString()
         {
-            content["senderid"] = this.senderID;
-            content["senderipaddress"] = this.senderIpAddress;
-            content["senderport"] = this.senderPort.ToString();
-            content["messagetype"] = this.messageType;
+            this["senderid"] = this.senderID;
+            this["senderipaddress"] = this.senderIpAddress;
+            this["senderport"] = this.senderPort.ToString();
+            this["messagetype"] = this.messageType.ToString();
             return JsonSerializer.Serialize<Dictionary<string, string>>(content);
         }
     }
