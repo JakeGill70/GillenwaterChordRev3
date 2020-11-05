@@ -12,18 +12,30 @@ namespace GillenwaterChordRev3
 {
     // Abstracts the Chord Node on this machine
     // Simplifies the management of server and client components
-    public class LocalNode : ChordNode, IMessageProcessor
+    public class LocalNode : ChordNode
     {
         // Component responsible for receiving messages from remote nodes
-        readonly AsynchronousServer serverComponent;
+        private readonly AsynchronousServer serverComponent;
 
         // Component responsible for sending messages to remote nodes
-        readonly AsynchronousClient clientComponent;
+        public readonly AsynchronousClient clientComponent;
+
+        // Component responsible for processing messages from remote nodes
+        public readonly IMessageProcessor msgProccessor;
+
+        // Used for storing local resources
+        private readonly Dictionary<string, string> localResources;
+
+        // Predecessor Node
+        public ChordNode predNode;
+
+        // Successor Node
+        public ChordNode succNode;
 
         // string localIpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString()
-        public LocalNode(int port) : base(Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString(), port)
+        public LocalNode(int port, IMessageProcessor messageProcessor) : base(Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString(), port)
         {
-            serverComponent = new AsynchronousServer(port, this);
+            serverComponent = new AsynchronousServer(port, messageProcessor);
             clientComponent = new AsynchronousClient();
             var serverTask = Task.Run(() => serverComponent.StartServerAsync());
         }
@@ -50,36 +62,18 @@ namespace GillenwaterChordRev3
             return responseMsg;
         }
 
-        // Process incoming messages and craft an appropriate response
-        public async Task<Message> ProcessMsgAsync(Message msg)
+        // Retrive a local resource by Id
+        public string GetLocalResource(string resourceId)
         {
-            // If the "target" parameter exists - used for testing purposes
-            if (msg["target"].Equals(string.Empty))
-            {
-                if (msg.senderID.Equals(this.Id))
-                {
-                    OutputManager.Ui.Write("Request could not find target.");
-                    msg["processed"] = false.ToString();
-                }
-                else if (msg["target"].Equals(this.Port.ToString()))
-                {
-                    msg["processed"] = true.ToString();
-                }
-                else
-                {
-                    msg = await this.clientComponent.SendMsgAsync(msg);
-                }
-            }
+            string resource = null;
+            localResources.TryGetValue(resourceId, out resource);
+            return resource;
+        }
 
-            if (msg.messageType == MessageType.AddResourceRequest) {
-                Messages.ResourceOwnerRequest rorMsg = (msg as Messages.ResourceOwnerRequest);
-                if (string.Compare(this.Id, rorMsg.resourceId) < 0)
-                {
-                    msg = new Messages.ResourceOwnerResponse(this, rorMsg.resourceId, this);
-                }
-            }
-
-            return msg;
+        // Assigns a local resource
+        public void SetLocalResource(string resourceId, string resourceName, string resourceContent)
+        {
+            localResources.Add(resourceId, resourceContent);
         }
     }
 }
