@@ -67,7 +67,8 @@ namespace GillenwaterChordRev3
             Messages.AddResourceRequest arMsg = (msg as Messages.AddResourceRequest);
             if (string.Compare(this.localNode.Id, arMsg.resourceId) < 0)
             {
-                msg = new Messages.ResourceOwnerResponse(this.localNode, arMsg.resourceId, this.localNode);
+                this.SetLocalResource(arMsg.resourceId, arMsg.resourceName, arMsg.resourceContent);
+                msg = new Messages.AddResourceResponse(this.localNode, arMsg.resourceId, arMsg.resourceName);
             }
             return msg;
         }
