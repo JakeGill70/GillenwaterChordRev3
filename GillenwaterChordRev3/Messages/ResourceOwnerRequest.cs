@@ -5,11 +5,10 @@
     /// </summary>
     public class ResourceOwnerRequest : Message
     {
-        public readonly string resourceId;
+        public string resourceId { get { return this["resourceid"]; } private set { this["resourceid"] = value; } }
 
         public ResourceOwnerRequest(string messageJSON) : base(messageJSON)
         {
-            resourceId = this["resourceid"];
         }
 
         public ResourceOwnerRequest(ChordNode senderNode, string recId) : base(senderNode, MessageType.OwnerOfIdRequest)
@@ -19,7 +18,6 @@
 
         public override string ToString()
         {
-            this[resourceId] = resourceId;
             return base.ToString();
         }
     }

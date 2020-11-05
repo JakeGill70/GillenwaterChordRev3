@@ -8,10 +8,10 @@ namespace GillenwaterChordRev3.Messages
     // Represents a message sent between nodes
     public class Message
     {
-        public readonly string senderID;
-        public readonly string senderIpAddress;
-        public readonly int senderPort;
-        public readonly MessageType messageType;
+        public string senderID { get { return this["senderid"]; } private set { this["senderid"] = value; } }
+        public string senderIpAddress { get { return this["senderipaddress"]; } private set { this["senderipaddress"] = value; } }
+        public int senderPort { get { return int.Parse(this["senderport"]); } private set { this["senderport"] = value.ToString(); } }
+        public MessageType messageType { get { return (MessageType)Enum.Parse(typeof(MessageType), this["senderid"]); } private set { this["senderid"] = value.ToString(); } }
         private Dictionary<string, string> content;
 
         public string this[string key] {
@@ -34,10 +34,6 @@ namespace GillenwaterChordRev3.Messages
 
         public Message(string messageJSON) {
             this.content = JsonSerializer.Deserialize<Dictionary<string, string>>(messageJSON);
-            this.senderID = content["senderid"];
-            this.senderIpAddress = content["senderipaddress"];
-            this.senderPort = int.Parse(content["senderport"]);
-            this.messageType = (MessageType) Enum.Parse(typeof(MessageType), content["messagetype"]);
         }
 
         public Message(ChordNode senderNode, MessageType msgType)
@@ -59,10 +55,6 @@ namespace GillenwaterChordRev3.Messages
 
         public override string ToString()
         {
-            this["senderid"] = this.senderID;
-            this["senderipaddress"] = this.senderIpAddress;
-            this["senderport"] = this.senderPort.ToString();
-            this["messagetype"] = this.messageType.ToString();
             return JsonSerializer.Serialize<Dictionary<string, string>>(content);
         }
     }

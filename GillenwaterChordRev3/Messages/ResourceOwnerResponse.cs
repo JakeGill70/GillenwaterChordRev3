@@ -5,17 +5,13 @@
     /// </summary>
     public class ResourceOwnerResponse : Message
     {
-        readonly string resourceId;
-        readonly string ownerId;
-        readonly string ownerIpAddress;
-        readonly int ownerPort;
+        public string resourceId { get { return this["resourceid"]; } private set { this["resourceid"] = value; } }
+        public string ownerId { get { return this["ownerid"]; } private set { this["ownerid"] = value; } }
+        public string ownerIpAddress { get { return this["owneripaddress"]; } private set { this["owneripaddress"] = value; } }
+        public int ownerPort { get { return int.Parse(this["ownerport"]); } private set { this["ownerport"] = value.ToString(); } }
 
         public ResourceOwnerResponse(string messageJSON) : base(messageJSON)
         {
-            resourceId = this["resourceid"];
-            ownerId = this["ownerid"];
-            ownerIpAddress = this["owneripaddress"];
-            ownerPort = int.Parse(this["ownerport"]);
         }
 
         public ResourceOwnerResponse(ChordNode senderNode, string recId, ChordNode ownerNode) : base(senderNode, MessageType.OwnerOfIdResponse)
@@ -28,10 +24,6 @@
 
         public override string ToString()
         {
-            this["resourceid"] = resourceId;
-            this["ownerid"] = ownerId;
-            this["owneripaddress"] = ownerIpAddress;
-            this["ownerport"] = ownerPort.ToString();
             return base.ToString();
         }
     }
