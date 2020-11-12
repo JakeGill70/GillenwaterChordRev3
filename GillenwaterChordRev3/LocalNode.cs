@@ -33,9 +33,11 @@ namespace GillenwaterChordRev3
         public ChordNode succNode;
 
         // string localIpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString()
-        public LocalNode(int port, IMessageProcessor messageProcessor) : base(Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString(), port)
+        public LocalNode(int port) : base(Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString(), port)
         {
-            serverComponent = new AsynchronousServer(port, messageProcessor);
+            localResources = new Dictionary<string, string>();
+            msgProccessor = new LocalMessageProcessor(this);
+            serverComponent = new AsynchronousServer(port, msgProccessor);
             clientComponent = new AsynchronousClient();
             var serverTask = Task.Run(() => serverComponent.StartServerAsync());
         }

@@ -23,13 +23,18 @@ namespace GillenwaterChordRev3
 
         public string GetLocalResource(string resourceId)
         {
-            throw new NotImplementedException();
+            return this.localNode.GetLocalResource(resourceId);
         }
 
         // Compare the resourceId to the local node's Id to determine if the node
         // is responisble for handling the resource or not
         private bool IsResponsibleForResource(string recId) {
-            return string.Compare(this.localNode.Id, recId) < 0;
+            bool normalCase = string.Compare(this.localNode.Id, recId) <= 0;
+            bool isLargerThanSelf = (string.Compare(this.localNode.Id, recId) > 0);
+            bool isLargerThanPred = (string.Compare(this.localNode.predNode.Id, recId) > 0);
+            bool isPredLargerThanSelf = (string.Compare(this.localNode.predNode.Id, this.localNode.Id) > 0);
+            bool smallestNodeInRingCase = isLargerThanSelf && isLargerThanPred && isPredLargerThanSelf;
+            return (normalCase || smallestNodeInRingCase);
         }
 
         private async Task<Message> ProcTestMessage(Message msg) {
@@ -43,6 +48,8 @@ namespace GillenwaterChordRev3
                 }
                 else if (msg["target"].Equals(localNode.Port.ToString()))
                 {
+                    OutputManager.Server.Write("New msg for me from node " + msg.senderID);
+                    OutputManager.Server.Write("Msg says: " + msg["TestData"]);
                     msg["processed"] = true.ToString();
                 }
                 else
@@ -85,7 +92,7 @@ namespace GillenwaterChordRev3
 
         public void SetLocalResource(string resourceId, string resourceName, string resourceContent)
         {
-            throw new NotImplementedException();
+            this.localNode.SetLocalResource(resourceId, resourceName, resourceContent);
         }
     }
 }
