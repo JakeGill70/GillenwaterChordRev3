@@ -11,6 +11,7 @@ namespace GillenwaterChordRev3.Messages
         public string senderID { get { return this["senderid"]; } private set { this["senderid"] = value; } }
         public string senderIpAddress { get { return this["senderipaddress"]; } private set { this["senderipaddress"] = value; } }
         public int senderPort { get { return int.Parse(this["senderport"]); } private set { this["senderport"] = value.ToString(); } }
+        public bool isProcessed { get { return string.IsNullOrEmpty(this["isprocessed"]) ? false : bool.Parse(this["isprocessed"]); } set { this["isprocessed"] = value.ToString(); } }
         public MessageType messageType { get { return (MessageType)Enum.Parse(typeof(MessageType), this["senderid"]); } private set { this["senderid"] = value.ToString(); } }
         private Dictionary<string, string> content;
 

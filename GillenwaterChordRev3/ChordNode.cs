@@ -17,5 +17,12 @@ namespace GillenwaterChordRev3
             this.Port = port;
         }
 
+        public ChordNode(string ip, int port, string id)
+        {
+            Id = id;
+            this.IpAddress = ip;
+            this.Port = port;
+        }
+
     }
 }

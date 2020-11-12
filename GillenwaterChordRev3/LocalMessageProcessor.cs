@@ -16,9 +16,9 @@ namespace GillenwaterChordRev3
 
             // Initialize dispatch table
             processDispatch = new Dictionary<MessageType, Func<Message, Task<Message>>>();
-            processDispatch[MessageType.Testing] = (async msg => await ProcTestMessage(msg));
             processDispatch[MessageType.OwnerOfIdRequest] = (async msg => await ProcResourceOwnerRequest(msg));
-            processDispatch[MessageType.AddResourceRequest] = (async msg => await ProcTestMessage(msg));
+            processDispatch[MessageType.AddResourceRequest] = (async msg => await ProcAddResourceRequest(msg));
+            processDispatch[MessageType.JoinRequest] = (async msg => await ProcJoinRequest(msg));
         }
 
         public string GetLocalResource(string resourceId)
@@ -37,34 +37,12 @@ namespace GillenwaterChordRev3
             return (normalCase || smallestNodeInRingCase);
         }
 
-        private async Task<Message> ProcTestMessage(Message msg) {
-            // If the "target" parameter exists - used for testing purposes
-            if (msg["target"].Equals(string.Empty))
-            {
-                if (msg.senderID.Equals(localNode.Id))
-                {
-                    OutputManager.Ui.Write("Request could not find target.");
-                    msg["processed"] = false.ToString();
-                }
-                else if (msg["target"].Equals(localNode.Port.ToString()))
-                {
-                    OutputManager.Server.Write("New msg for me from node " + msg.senderID);
-                    OutputManager.Server.Write("Msg says: " + msg["TestData"]);
-                    msg["processed"] = true.ToString();
-                }
-                else
-                {
-                    msg = await this.localNode.clientComponent.SendMsgAsync(msg);
-                }
-            }
-            return msg;
-        }
-
         private async Task<Message> ProcResourceOwnerRequest(Message msg) {
             Messages.ResourceOwnerRequest rorMsg = (msg as Messages.ResourceOwnerRequest);
-            if (string.Compare(this.localNode.Id, rorMsg.resourceId) < 0)
+            if (IsResponsibleForResource(rorMsg.resourceId))
             {
-                msg = new Messages.ResourceOwnerResponse(this.localNode, rorMsg.resourceId, this.localNode);
+                msg = new Messages.ResourceOwnerResponse(this.localNode, rorMsg.resourceId, this.localNode, this.localNode.predNode, this.localNode.succNode);
+                msg.isProcessed = true;
             }
             return msg;
         }
@@ -72,12 +50,24 @@ namespace GillenwaterChordRev3
         private async Task<Message> ProcAddResourceRequest(Message msg)
         {
             Messages.AddResourceRequest arMsg = (msg as Messages.AddResourceRequest);
-            if (string.Compare(this.localNode.Id, arMsg.resourceId) < 0)
+            if (IsResponsibleForResource(arMsg.resourceId))
             {
                 this.SetLocalResource(arMsg.resourceId, arMsg.resourceName, arMsg.resourceContent);
                 msg = new Messages.AddResourceResponse(this.localNode, arMsg.resourceId, arMsg.resourceName);
+                msg.isProcessed = true;
             }
             return msg;
+        }
+
+        private async Task<Message> ProcJoinRequest(Message msg) {
+            Messages.JoinRequest jrMsg = (msg as Messages.JoinRequest);
+            Messages.ResourceOwnerRequest joinPointRequest = new Messages.ResourceOwnerRequest(this.localNode, jrMsg.senderID);
+            Messages.ResourceOwnerResponse joinPointResponse = (await ProcessMsgAsync(joinPointRequest)) as Messages.ResourceOwnerResponse;
+            ChordNode succNode = new ChordNode(joinPointResponse.ownerIpAddress, joinPointResponse.ownerPort, joinPointResponse.ownerId);
+            ChordNode predNode = new ChordNode(joinPointResponse.predId, joinPointResponse.predPort, joinPointResponse.predId);
+            Messages.JoinResponse rMsg = new Messages.JoinResponse(this.localNode, succNode, predNode);
+            rMsg.isProcessed = true;
+            return rMsg;
         }
 
         // Process incoming messages and craft an appropriate response
@@ -86,6 +76,12 @@ namespace GillenwaterChordRev3
             Message response;
 
             response = await processDispatch[msg.messageType](msg);
+
+            if (!response.isProcessed) {
+                // If the response was NOT processed
+                // Pass the buck
+                response = await this.localNode.clientComponent.SendMsgAsync(msg);
+            }
 
             return response;
         }
