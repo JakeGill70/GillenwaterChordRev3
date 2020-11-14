@@ -6,6 +6,10 @@
         public string resourceContent { get { return this["resourcecontent"]; } private set { this["resourcecontent"] = value; } }
         public bool resourceAddedSuccessfully { get { return bool.Parse(this["resourceaddedsuccessfully"]); } private set { this["resourceaddedsuccessfully"] = value.ToString(); } }
 
+        public AddResourceRequest(string messageJSON) : base(messageJSON) { 
+        
+        }
+
         public AddResourceRequest(ChordNode senderNode, string recId, string recName, string recContent) : base(senderNode, MessageType.AddResourceRequest)
         {
             resourceId = recId;

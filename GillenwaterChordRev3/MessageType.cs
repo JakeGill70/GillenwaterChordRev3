@@ -14,6 +14,10 @@ namespace GillenwaterChordRev3.Messages
         OwnerOfIdRequest,
         OwnerOfIdResponse,
         AddResourceRequest,
-        AddResourceResponse
+        AddResourceResponse,
+        UpdatePredNodeRequest,
+        UpdateSuccNodeRequest,
+        UpdateNodeResponse,
+        Disconnect
     }
 }

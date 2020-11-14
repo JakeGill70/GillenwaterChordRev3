@@ -60,18 +60,30 @@ namespace GillenwaterChordRev3
                 Socket handler = listener.Accept();
                 OutputManager.Server.Write("New Handler at: " + handler.RemoteEndPoint.ToString());
 
-                _ = ConnectionHandlerAsync(handler);
+                OutputManager.Server.Write("@Starting Handler");
+                Task t = ConnectionHandlerAsync(handler);
+                t.Start();
+                OutputManager.Server.Write("@Handler started");
             }
         }
 
         private async Task ConnectionHandlerAsync(Socket handler) {
             while (true)
             {
-                Message request = await ReadDataAsync(handler);
+                Message request = await ReadDataAsync(handler); 
                 OutputManager.Server.Write("Request: " + request);
+                if (request.messageType == MessageType.Disconnect) {
+                    break;
+                }
                 Message response = await this.msgProcessor.ProcessMsgAsync(request);
+                OutputManager.Server.Write("Request read and processed.");
+                OutputManager.Server.Write("Sending response...");
                 await SendMsgAsync(handler, response);
+                OutputManager.Server.Write("Response sent!");
             }
+            OutputManager.Server.Write("Handler closed at: " + handler.RemoteEndPoint.ToString());
+            handler.Shutdown(SocketShutdown.Both);
+            handler.Close();
         }
 
         private async Task SendMsgAsync(Socket handler, Message msg)
@@ -102,12 +114,26 @@ namespace GillenwaterChordRev3
                 {
                     break;
                 }
+
+                if (!handler.Connected) {
+                    OutputManager.Server.Write("\tDisconnected from handler.");
+                    data = string.Empty;
+                    break;
+                }
             }
 
             // Remove <EOF>
             data = data.Substring(0, data.Length - "<EOF>".Length);
 
-            Message msg = new Message(data);
+            Message msg;
+            if (data.Equals("Disconnect"))
+            {
+                msg = new Message(new ChordNode("", 0), MessageType.Disconnect);
+            }
+            else
+            {
+                msg = new Message(data);
+            }
 
             return msg;
         }

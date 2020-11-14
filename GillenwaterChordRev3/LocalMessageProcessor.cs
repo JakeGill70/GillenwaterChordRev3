@@ -19,6 +19,8 @@ namespace GillenwaterChordRev3
             processDispatch[MessageType.OwnerOfIdRequest] = (async msg => await ProcResourceOwnerRequest(msg));
             processDispatch[MessageType.AddResourceRequest] = (async msg => await ProcAddResourceRequest(msg));
             processDispatch[MessageType.JoinRequest] = (async msg => await ProcJoinRequest(msg));
+            processDispatch[MessageType.UpdatePredNodeRequest] = (async msg => await ProcUpdatePredRequest(msg));
+            processDispatch[MessageType.UpdateSuccNodeRequest] = (async msg => await ProcUpdateSuccRequest(msg));
         }
 
         public string GetLocalResource(string resourceId)
@@ -38,18 +40,24 @@ namespace GillenwaterChordRev3
         }
 
         private async Task<Message> ProcResourceOwnerRequest(Message msg) {
-            Messages.ResourceOwnerRequest rorMsg = (msg as Messages.ResourceOwnerRequest);
+            Messages.ResourceOwnerRequest rorMsg = new Messages.ResourceOwnerRequest(msg.ToString());
+            OutputManager.Server.Write("Processing resource owner request...");
             if (IsResponsibleForResource(rorMsg.resourceId))
             {
+                OutputManager.Server.Write("Is responsible for resource...");
                 msg = new Messages.ResourceOwnerResponse(this.localNode, rorMsg.resourceId, this.localNode, this.localNode.predNode, this.localNode.succNode);
                 msg.isProcessed = true;
             }
+            else {
+                OutputManager.Server.Write("Not responsible for resource...");
+            }
+            OutputManager.Server.Write("Resource owner request processed!");
             return msg;
         }
 
         private async Task<Message> ProcAddResourceRequest(Message msg)
         {
-            Messages.AddResourceRequest arMsg = (msg as Messages.AddResourceRequest);
+            Messages.AddResourceRequest arMsg = new Messages.AddResourceRequest(msg.ToString());
             if (IsResponsibleForResource(arMsg.resourceId))
             {
                 this.SetLocalResource(arMsg.resourceId, arMsg.resourceName, arMsg.resourceContent);
@@ -60,30 +68,73 @@ namespace GillenwaterChordRev3
         }
 
         private async Task<Message> ProcJoinRequest(Message msg) {
-            Messages.JoinRequest jrMsg = (msg as Messages.JoinRequest);
+            OutputManager.Server.Write("Processing join request...");
+            Messages.JoinRequest jrMsg = new JoinRequest(msg.ToString());
+            OutputManager.Server.Write("Finding join point...");
             Messages.ResourceOwnerRequest joinPointRequest = new Messages.ResourceOwnerRequest(this.localNode, jrMsg.senderID);
-            Messages.ResourceOwnerResponse joinPointResponse = (await ProcessMsgAsync(joinPointRequest)) as Messages.ResourceOwnerResponse;
+            OutputManager.Server.Write("Awaiting to process...");
+            Message tmp = await ProcResourceOwnerRequest(joinPointRequest);
+            OutputManager.Server.Write("process awaited");
+            Messages.ResourceOwnerResponse joinPointResponse = tmp as Messages.ResourceOwnerResponse;
+            OutputManager.Server.Write("Generating a response...");
             ChordNode succNode = new ChordNode(joinPointResponse.ownerIpAddress, joinPointResponse.ownerPort, joinPointResponse.ownerId);
-            ChordNode predNode = new ChordNode(joinPointResponse.predId, joinPointResponse.predPort, joinPointResponse.predId);
+            ChordNode predNode = new ChordNode(joinPointResponse.predIpAddress, joinPointResponse.predPort, joinPointResponse.predId);
             Messages.JoinResponse rMsg = new Messages.JoinResponse(this.localNode, succNode, predNode);
             rMsg.isProcessed = true;
+            OutputManager.Server.Write("Join request processed!");
             return rMsg;
+        }
+
+        private async Task<Message> ProcUpdatePredRequest(Message msg) {
+            Messages.UpdatePredNodeRequest upnrMsg = new Messages.UpdatePredNodeRequest(msg.ToString());
+            // Update local node relationship
+            ChordNode predNode = new ChordNode(upnrMsg.predIpAddress, upnrMsg.predPort, upnrMsg.predId);
+            this.localNode.predNode = predNode;
+            // The pred communicates with the server component,
+            // so there is no reason to update the client connections
+            upnrMsg.isProcessed = true;
+            // craft a response message
+            Messages.UpdateNodeResponse response = new UpdateNodeResponse(this.localNode, true);
+            response.isProcessed = true;
+            return response;
+        }
+
+        private async Task<Message> ProcUpdateSuccRequest(Message msg)
+        {
+            Messages.UpdateSuccNodeRequest usnrMsg = new Messages.UpdateSuccNodeRequest(msg.ToString());
+            // Update local node relationship
+            ChordNode succNode = new ChordNode(usnrMsg.succIpAddress, usnrMsg.succPort, usnrMsg.succId);
+            this.localNode.succNode = succNode;
+            // Adjust connection to client node
+            this.localNode.DisconnectFromNode();
+            this.localNode.ConnectToNode(succNode.IpAddress, succNode.Port);
+            usnrMsg.isProcessed = true;
+            // craft a response message
+            Messages.UpdateNodeResponse response = new UpdateNodeResponse(this.localNode, true);
+            response.isProcessed = true;
+            return response;
         }
 
         // Process incoming messages and craft an appropriate response
         public async Task<Message> ProcessMsgAsync(Message msg)
         {
+            OutputManager.Server.Write("Processing Msg: " + msg);
+
             Message response;
 
+            OutputManager.Server.Write("\tDispatching msg...");
             response = await processDispatch[msg.messageType](msg);
+            OutputManager.Server.Write("\tMsg dispatched.");
 
             if (!response.isProcessed) {
+                OutputManager.Server.Write("Could not process message. Now passing the buck...");
                 // If the response was NOT processed
                 // Pass the buck
                 response = await this.localNode.clientComponent.SendMsgAsync(msg);
+                OutputManager.Server.Write("Someone else could do it!");
             }
 
-            return response;
+             return response;
         }
 
         public void SetLocalResource(string resourceId, string resourceName, string resourceContent)

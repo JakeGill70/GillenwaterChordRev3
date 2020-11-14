@@ -39,6 +39,10 @@ namespace GillenwaterChordRev3
             msgProccessor = new LocalMessageProcessor(this);
             serverComponent = new AsynchronousServer(port, msgProccessor);
             clientComponent = new AsynchronousClient();
+
+            predNode = this;
+            succNode = this;
+
             var serverTask = Task.Run(() => serverComponent.StartServerAsync());
         }
 
