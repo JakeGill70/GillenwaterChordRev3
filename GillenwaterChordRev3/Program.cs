@@ -37,7 +37,7 @@ namespace GillenwaterChordRev3
                         app.ProcConnect();
                         break;
                     case "join":
-                        await app.ProcJoin();
+                        app.ProcJoin();
                         break;
                 }
             }
@@ -67,13 +67,13 @@ namespace GillenwaterChordRev3
             OutputManager.Ui.Write("Connected");
         }
 
-        async Task ProcJoin() {
+        void ProcJoin() {
             // Connect to arbitrary node in the ring
             ProcConnect();
             // Make a join request
             OutputManager.Ui.Write("Join Request...");
             JoinRequest joinRequest = new JoinRequest(this.localNode);
-            Message joinResponseTmp = await localNode.SendMessage(joinRequest);
+            Message joinResponseTmp = localNode.SendMessage(joinRequest);
             JoinResponse joinResponse = new JoinResponse(joinResponseTmp.ToString());
             // Disconnect from the arbitary node in the ring
             OutputManager.Ui.Write("Disconnecting from node...");
@@ -88,7 +88,7 @@ namespace GillenwaterChordRev3
             // Have pred update their succ
             OutputManager.Ui.Write("Having pred update their succ...");
             UpdateSuccNodeRequest uSuccRequest = new UpdateSuccNodeRequest(this.localNode, this.localNode);
-            Message uSuccResponseTmp = await localNode.SendMessage(uSuccRequest);
+            Message uSuccResponseTmp = localNode.SendMessage(uSuccRequest);
             UpdateNodeResponse uSuccResponse = new UpdateNodeResponse(uSuccResponseTmp.ToString());
             // TODO: Ensure that update was successful
             // Disconnect from pred
@@ -100,7 +100,7 @@ namespace GillenwaterChordRev3
             // Have succ update their pred
             OutputManager.Ui.Write("Having succ update their pred...");
             UpdatePredNodeRequest uPredRequest = new UpdatePredNodeRequest(this.localNode, this.localNode);
-            UpdateNodeResponse uPredResponse = (await localNode.SendMessage(uPredRequest)) as UpdateNodeResponse;
+            UpdateNodeResponse uPredResponse = (localNode.SendMessage(uPredRequest)) as UpdateNodeResponse;
             // TODO: Ensure that update was successful
             OutputManager.Ui.Write("Successfully joined to ring!");
         }

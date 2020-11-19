@@ -58,7 +58,7 @@ namespace GillenwaterChordRev3
         }
 
         // Send a message to the remote node
-        public async Task<Message> SendMsgAsync(Message msg)
+        public Message SendMsgAsync(Message msg)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace GillenwaterChordRev3
                 // Send the data through the socket.  
                 int bytesSent = sender.Send(msgBuffer);
 
-                Message response = await ReadMsgAsync();
+                Message response = ReadMsgAsync();
 
                 return response;
             }
@@ -91,7 +91,7 @@ namespace GillenwaterChordRev3
         }
 
         // Read a response message from the remote node
-        public async Task<Message> ReadMsgAsync()
+        public Message ReadMsgAsync()
         {
             try
             {

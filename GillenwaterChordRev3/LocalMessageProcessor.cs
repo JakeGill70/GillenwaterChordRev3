@@ -9,18 +9,18 @@ namespace GillenwaterChordRev3
     class LocalMessageProcessor : IMessageProcessor
     {
         LocalNode localNode;
-        Dictionary<MessageType, Func<Message,Task<Message>>> processDispatch;
+        Dictionary<MessageType, Func<Message,Message>> processDispatch;
 
         public LocalMessageProcessor(LocalNode localNode) {
             this.localNode = localNode;
 
             // Initialize dispatch table
-            processDispatch = new Dictionary<MessageType, Func<Message, Task<Message>>>();
-            processDispatch[MessageType.OwnerOfIdRequest] = (async msg => await ProcResourceOwnerRequest(msg));
-            processDispatch[MessageType.AddResourceRequest] = (async msg => await ProcAddResourceRequest(msg));
-            processDispatch[MessageType.JoinRequest] = (async msg => await ProcJoinRequest(msg));
-            processDispatch[MessageType.UpdatePredNodeRequest] = (async msg => await ProcUpdatePredRequest(msg));
-            processDispatch[MessageType.UpdateSuccNodeRequest] = (async msg => await ProcUpdateSuccRequest(msg));
+            processDispatch = new Dictionary<MessageType, Func<Message, Message>>();
+            processDispatch[MessageType.OwnerOfIdRequest] = (msg =>  ProcResourceOwnerRequest(msg));
+            processDispatch[MessageType.AddResourceRequest] = (msg =>  ProcAddResourceRequest(msg));
+            processDispatch[MessageType.JoinRequest] = (msg =>  ProcJoinRequest(msg));
+            processDispatch[MessageType.UpdatePredNodeRequest] = (msg =>  ProcUpdatePredRequest(msg));
+            processDispatch[MessageType.UpdateSuccNodeRequest] = (msg =>  ProcUpdateSuccRequest(msg));
         }
 
         public string GetLocalResource(string resourceId)
@@ -42,7 +42,7 @@ namespace GillenwaterChordRev3
             return isResponsible;
         }
 
-        private async Task<Message> ProcResourceOwnerRequest(Message msg) {
+        private Message ProcResourceOwnerRequest(Message msg) {
             Messages.ResourceOwnerRequest rorMsg = new Messages.ResourceOwnerRequest(msg.ToString());
             OutputManager.Server.Write("Processing resource owner request...");
             if (IsResponsibleForResource(rorMsg.resourceId))
@@ -58,7 +58,7 @@ namespace GillenwaterChordRev3
             return msg;
         }
 
-        private async Task<Message> ProcAddResourceRequest(Message msg)
+        private Message ProcAddResourceRequest(Message msg)
         {
             Messages.AddResourceRequest arMsg = new Messages.AddResourceRequest(msg.ToString());
             if (IsResponsibleForResource(arMsg.resourceId))
@@ -70,13 +70,13 @@ namespace GillenwaterChordRev3
             return msg;
         }
 
-        private async Task<Message> ProcJoinRequest(Message msg) {
+        private Message ProcJoinRequest(Message msg) {
             OutputManager.Server.Write("Processing join request...");
             Messages.JoinRequest jrMsg = new JoinRequest(msg.ToString());
             OutputManager.Server.Write("Finding join point...");
             Messages.ResourceOwnerRequest joinPointRequest = new Messages.ResourceOwnerRequest(this.localNode, jrMsg.senderID);
             OutputManager.Server.Write("Awaiting to process...");
-            Message tmp = await ProcResourceOwnerRequest(joinPointRequest);
+            Message tmp = ProcResourceOwnerRequest(joinPointRequest);
             OutputManager.Server.Write("process awaited");
             Messages.ResourceOwnerResponse joinPointResponse = tmp as Messages.ResourceOwnerResponse;
             OutputManager.Server.Write("Generating Pred and Succ nodes...");
@@ -89,7 +89,7 @@ namespace GillenwaterChordRev3
             return rMsg;
         }
 
-        private async Task<Message> ProcUpdatePredRequest(Message msg) {
+        private Message ProcUpdatePredRequest(Message msg) {
             Messages.UpdatePredNodeRequest upnrMsg = new Messages.UpdatePredNodeRequest(msg.ToString());
             // Update local node relationship
             ChordNode predNode = new ChordNode(upnrMsg.predIpAddress, upnrMsg.predPort, upnrMsg.predId);
@@ -103,7 +103,7 @@ namespace GillenwaterChordRev3
             return response;
         }
 
-        private async Task<Message> ProcUpdateSuccRequest(Message msg)
+        private Message ProcUpdateSuccRequest(Message msg)
         {
             Messages.UpdateSuccNodeRequest usnrMsg = new Messages.UpdateSuccNodeRequest(msg.ToString());
             // Update local node relationship
@@ -125,21 +125,21 @@ namespace GillenwaterChordRev3
         }
 
         // Process incoming messages and craft an appropriate response
-        public async Task<Message> ProcessMsgAsync(Message msg)
+        public Message ProcessMsg(Message msg)
         {
             OutputManager.Server.Write("Processing Msg: " + msg);
 
             Message response;
 
             OutputManager.Server.Write("\tDispatching msg...");
-            response = await processDispatch[msg.messageType](msg);
+            response = processDispatch[msg.messageType](msg);
             OutputManager.Server.Write("\tMsg dispatched.");
 
             if (!response.isProcessed) {
                 OutputManager.Server.Write("Could not process message. Now passing the buck...");
                 // If the response was NOT processed
                 // Pass the buck
-                response = await this.localNode.clientComponent.SendMsgAsync(msg);
+                response = this.localNode.clientComponent.SendMsgAsync(msg);
                 OutputManager.Server.Write("Someone else could do it!");
             }
 

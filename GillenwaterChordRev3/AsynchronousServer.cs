@@ -61,23 +61,28 @@ namespace GillenwaterChordRev3
                 OutputManager.Server.Write("New Handler at: " + handler.RemoteEndPoint.ToString());
 
                 OutputManager.Server.Write("@Starting Handler");
-                ConnectionHandlerAsync(handler);
+                //ConnectionHandlerAsync(handler);
+                Task.Run(() => ConnectionHandlerAsync(handler));
+
+                //Task handlerThread = ConnectionHandlerAsync(handler);
+                //handlerThread.Start();
+
                 OutputManager.Server. Write("@Handler started");
             }
         }
 
-        private async Task ConnectionHandlerAsync(Socket handler) {
+        private void ConnectionHandlerAsync(Socket handler) {
             while (true)
             {
-                Message request = await ReadDataAsync(handler); 
+                Message request = ReadData(handler); 
                 OutputManager.Server.Write("Request: " + request);
                 if (request.messageType == MessageType.Disconnect) {
                     break;
                 }
-                Message response = await this.msgProcessor.ProcessMsgAsync(request);
+                Message response = this.msgProcessor.ProcessMsg(request);
                 OutputManager.Server.Write("Request read and processed.");
                 OutputManager.Server.Write("Sending response...");
-                await SendMsgAsync(handler, response);
+                SendMsg(handler, response);
                 OutputManager.Server.Write("Response sent!");
             }
             OutputManager.Server.Write("Handler closed at: " + handler.RemoteEndPoint.ToString());
@@ -85,7 +90,7 @@ namespace GillenwaterChordRev3
             handler.Close();
         }
 
-        private async Task SendMsgAsync(Socket handler, Message msg)
+        private void SendMsg(Socket handler, Message msg)
         {
             string data = msg.ToString();
             data += "<EOF>";
@@ -96,7 +101,7 @@ namespace GillenwaterChordRev3
             handler.Send(msgBuffer);
         }
 
-        private async Task<Message> ReadDataAsync(Socket handler)
+        private Message ReadData(Socket handler)
         {
 
             // Data buffer for incoming data.  

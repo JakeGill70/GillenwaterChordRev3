@@ -8,7 +8,7 @@ namespace GillenwaterChordRev3
 {
     public interface IMessageProcessor
     {
-        public Task<Message> ProcessMsgAsync(Message msg);
+        public Message ProcessMsg(Message msg);
         public string GetLocalResource(string resourceId);
         public void SetLocalResource(string resourceId, string resourceName, string resourceContent);
     }

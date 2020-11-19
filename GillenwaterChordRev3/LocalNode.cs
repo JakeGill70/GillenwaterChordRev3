@@ -63,8 +63,8 @@ namespace GillenwaterChordRev3
         }
 
         // Send a Message to a remote node
-        public async Task<Message> SendMessage(Message msg) {
-            Message responseMsg = await clientComponent.SendMsgAsync(msg);
+        public Message SendMessage(Message msg) {
+            Message responseMsg = clientComponent.SendMsgAsync(msg);
             return responseMsg;
         }
 
