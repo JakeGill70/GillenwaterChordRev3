@@ -31,12 +31,15 @@ namespace GillenwaterChordRev3
         // Compare the resourceId to the local node's Id to determine if the node
         // is responisble for handling the resource or not
         private bool IsResponsibleForResource(string recId) {
-            bool normalCase = string.Compare(this.localNode.Id, recId) <= 0;
-            bool isLargerThanSelf = (string.Compare(this.localNode.Id, recId) > 0);
-            bool isLargerThanPred = (string.Compare(this.localNode.predNode.Id, recId) > 0);
-            bool isPredLargerThanSelf = (string.Compare(this.localNode.predNode.Id, this.localNode.Id) > 0);
+            string myId = this.localNode.Id;
+            string myPredId = this.localNode.predNode.Id;
+            bool normalCase = string.Compare(myId, recId) <= 0;
+            bool isLargerThanSelf = (string.Compare(myId, recId) > 0);
+            bool isLargerThanPred = (string.Compare(myPredId, recId) > 0);
+            bool isPredLargerThanSelf = (string.Compare(myPredId, myId) > 0);
             bool smallestNodeInRingCase = isLargerThanSelf && isLargerThanPred && isPredLargerThanSelf;
-            return (normalCase || smallestNodeInRingCase);
+            bool isResponsible = normalCase || smallestNodeInRingCase;
+            return isResponsible;
         }
 
         private async Task<Message> ProcResourceOwnerRequest(Message msg) {
@@ -76,9 +79,10 @@ namespace GillenwaterChordRev3
             Message tmp = await ProcResourceOwnerRequest(joinPointRequest);
             OutputManager.Server.Write("process awaited");
             Messages.ResourceOwnerResponse joinPointResponse = tmp as Messages.ResourceOwnerResponse;
-            OutputManager.Server.Write("Generating a response...");
+            OutputManager.Server.Write("Generating Pred and Succ nodes...");
             ChordNode succNode = new ChordNode(joinPointResponse.ownerIpAddress, joinPointResponse.ownerPort, joinPointResponse.ownerId);
             ChordNode predNode = new ChordNode(joinPointResponse.predIpAddress, joinPointResponse.predPort, joinPointResponse.predId);
+            OutputManager.Server.Write("Generating a response...");
             Messages.JoinResponse rMsg = new Messages.JoinResponse(this.localNode, succNode, predNode);
             rMsg.isProcessed = true;
             OutputManager.Server.Write("Join request processed!");
@@ -103,15 +107,20 @@ namespace GillenwaterChordRev3
         {
             Messages.UpdateSuccNodeRequest usnrMsg = new Messages.UpdateSuccNodeRequest(msg.ToString());
             // Update local node relationship
+            OutputManager.Server.Write("Updating local node relationship...");
             ChordNode succNode = new ChordNode(usnrMsg.succIpAddress, usnrMsg.succPort, usnrMsg.succId);
             this.localNode.succNode = succNode;
             // Adjust connection to client node
+            OutputManager.Server.Write("Disconnecting from old succ node...");
             this.localNode.DisconnectFromNode();
+            OutputManager.Server.Write("Connecting to new succ node...");
             this.localNode.ConnectToNode(succNode.IpAddress, succNode.Port);
             usnrMsg.isProcessed = true;
             // craft a response message
+            OutputManager.Server.Write("Generating a response...");
             Messages.UpdateNodeResponse response = new UpdateNodeResponse(this.localNode, true);
             response.isProcessed = true;
+            OutputManager.Server.Write("Finished processing an update succ request");
             return response;
         }
 

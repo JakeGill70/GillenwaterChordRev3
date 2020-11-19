@@ -127,14 +127,14 @@ namespace GillenwaterChordRev3
         public void Disconnect()
         {
             // Release the socket. 
-            if (sender.Connected)
+            if (sender != null && sender.Connected)
             {
                 // Encode the data string into a byte array.  
                 byte[] msgBuffer = Encoding.ASCII.GetBytes("Disconnect<EOF>");
 
                 // Send the data through the socket.  
                 int bytesSent = sender.Send(msgBuffer);
-                sender.Shutdown(SocketShutdown.Both);
+                sender.Disconnect(true);
                 sender.Close();
             }
         }

@@ -43,7 +43,7 @@ namespace GillenwaterChordRev3
 
         public void StopServer() {
             isServerRunning = false;
-            listener.Shutdown(SocketShutdown.Both);
+            listener.Disconnect(true);
             listener.Close();
         }
 
@@ -61,9 +61,8 @@ namespace GillenwaterChordRev3
                 OutputManager.Server.Write("New Handler at: " + handler.RemoteEndPoint.ToString());
 
                 OutputManager.Server.Write("@Starting Handler");
-                Task t = ConnectionHandlerAsync(handler);
-                t.Start();
-                OutputManager.Server.Write("@Handler started");
+                ConnectionHandlerAsync(handler);
+                OutputManager.Server. Write("@Handler started");
             }
         }
 
@@ -82,7 +81,7 @@ namespace GillenwaterChordRev3
                 OutputManager.Server.Write("Response sent!");
             }
             OutputManager.Server.Write("Handler closed at: " + handler.RemoteEndPoint.ToString());
-            handler.Shutdown(SocketShutdown.Both);
+            handler.Disconnect(true);
             handler.Close();
         }
 
