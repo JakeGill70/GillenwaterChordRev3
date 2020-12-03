@@ -42,6 +42,9 @@ namespace GillenwaterChordRev3
                     case "storage":
                         app.ProcStorage();
                         break;
+                    case "get":
+                        app.ProcGet();
+                        break;
                 }
             }
 
@@ -138,6 +141,22 @@ namespace GillenwaterChordRev3
                 {
                     OutputManager.Ui.Write($"\t{i+1}. {resourcesInLocalStorage[i]}");
                 }
+            }
+        }
+
+        void ProcGet() {
+            OutputManager.Ui.Write("What is the name the resource to get?");
+            string resourceName = Console.ReadLine();
+            string resourceId = EZHash.GetHashString(resourceName);
+            Messages.GetResourceRequest grr = new GetResourceRequest(this.localNode, resourceId);
+            Messages.Message tmpResponse = this.localNode.SendMessage(grr);
+            Messages.GetResourceResponse rep = new GetResourceResponse(tmpResponse.ToString());
+            if (rep.resourceFoundSuccessfully)
+            {
+                OutputManager.Ui.Write(rep.resourceContent);
+            }
+            else {
+                OutputManager.Ui.Write("A resource with that name could not be found.");
             }
         }
     }

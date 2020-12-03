@@ -64,16 +64,23 @@ namespace GillenwaterChordRev3
 
         // Send a Message to a remote node
         public Message SendMessage(Message msg) {
-            if (msg is AddResourceRequest && this.succNode.Id == this.Id) {
+            Message responseMsg; // Use to send the response
+            if (msg is AddResourceRequest && this.succNode.Id == this.Id)
+            {
                 AddResourceRequest arm = msg as AddResourceRequest;
                 SetLocalResource(arm.resourceId, arm.resourceName, arm.resourceContent);
-                AddResourceResponse r = new AddResourceResponse(this, arm.resourceId, arm.resourceName);
-                return r;
+                responseMsg = new AddResourceResponse(this, arm.resourceId, arm.resourceName);
             }
-            else {
-                Message responseMsg = clientComponent.SendMsgAsync(msg);
-                return responseMsg;
+            else if (msg is GetResourceRequest && this.succNode.Id == this.Id) {
+                GetResourceRequest grm = msg as GetResourceRequest;
+                string content = GetLocalResource(grm.resourceId);
+                responseMsg = new GetResourceResponse(this, grm.resourceId, "LOCALNODE ERR: RESOURCE NAME UNKNOWN!", content);
             }
+            else
+            {
+                responseMsg = clientComponent.SendMsgAsync(msg);
+            }
+            return responseMsg;
         }
 
         // Retrive a local resource by Id

@@ -21,6 +21,7 @@ namespace GillenwaterChordRev3
             processDispatch[MessageType.JoinRequest] = (msg =>  ProcJoinRequest(msg));
             processDispatch[MessageType.UpdatePredNodeRequest] = (msg =>  ProcUpdatePredRequest(msg));
             processDispatch[MessageType.UpdateSuccNodeRequest] = (msg =>  ProcUpdateSuccRequest(msg));
+            processDispatch[MessageType.GetResourceRequest] = (msg =>  ProcGetResourceRequest(msg));
         }
 
         public string GetLocalResource(string resourceId)
@@ -65,6 +66,24 @@ namespace GillenwaterChordRev3
             {
                 this.SetLocalResource(arMsg.resourceId, arMsg.resourceName, arMsg.resourceContent);
                 msg = new Messages.AddResourceResponse(this.localNode, arMsg.resourceId, arMsg.resourceName);
+                msg.isProcessed = true;
+            }
+            return msg;
+        }
+
+        private Message ProcGetResourceRequest(Message msg)
+        {
+            Messages.AddResourceRequest gMsg = new Messages.AddResourceRequest(msg.ToString());
+            if (IsResponsibleForResource(gMsg.resourceId))
+            {
+                string resourceContent = this.GetLocalResource(gMsg.resourceId);
+                if (string.IsNullOrEmpty(resourceContent))
+                {
+                    msg = new Messages.GetResourceResponse(this.localNode, gMsg.resourceId, gMsg.resourceName, "", false);
+                }
+                else {
+                    msg = new Messages.GetResourceResponse(this.localNode, gMsg.resourceId, gMsg.resourceName, resourceContent, true);
+                }
                 msg.isProcessed = true;
             }
             return msg;
