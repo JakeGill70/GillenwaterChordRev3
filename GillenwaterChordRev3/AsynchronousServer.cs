@@ -47,7 +47,7 @@ namespace GillenwaterChordRev3
             listener.Close();
         }
 
-        public async Task StartServerAsync() {
+        public void StartServer() {
             listener.Bind(localEndPoint);
             listener.Listen(10);
 
@@ -62,7 +62,7 @@ namespace GillenwaterChordRev3
 
                 OutputManager.Server.Write("@Starting Handler");
                 //ConnectionHandlerAsync(handler);
-                Task.Run(() => ConnectionHandlerAsync(handler));
+                Task.Run(() => ConnectionHandler(handler));
 
                 //Task handlerThread = ConnectionHandlerAsync(handler);
                 //handlerThread.Start();
@@ -71,7 +71,7 @@ namespace GillenwaterChordRev3
             }
         }
 
-        private void ConnectionHandlerAsync(Socket handler) {
+        private void ConnectionHandler(Socket handler) {
             while (true)
             {
                 Message request = ReadData(handler); 

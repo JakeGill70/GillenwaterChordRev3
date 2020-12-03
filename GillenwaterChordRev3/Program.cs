@@ -8,7 +8,7 @@ namespace GillenwaterChordRev3
     {
         LocalNode localNode;
 
-        static async Task Main()
+        static void Main()
         {
             Program app = new Program();
 
@@ -28,6 +28,7 @@ namespace GillenwaterChordRev3
 
                 switch (cmd.ToLower()) {
                     case "exit":
+                        app.ProcExit();
                         appIsRunning = false;
                         break;
                     case "info":
@@ -110,6 +111,7 @@ namespace GillenwaterChordRev3
             UpdateNodeResponse uPredResponse = (localNode.SendMessage(uPredRequest)) as UpdateNodeResponse;
             // TODO: Ensure that update was successful
             OutputManager.Ui.Write("Successfully joined to ring!");
+            // TODO: Get resources that should now belong to this node from succ node
         }
 
         void ProcAddResource() {
@@ -158,6 +160,18 @@ namespace GillenwaterChordRev3
             else {
                 OutputManager.Ui.Write("A resource with that name could not be found.");
             }
+        }
+
+        void ProcExit() { 
+            // display message showing that exit process has started
+            // Update current pred's succ to current succ
+            // Update current succ's pred to current pred
+            // Foreach resource in local resources:
+            //      Add resource to current succ
+            //      display message showing status of exit process
+            // disconnect from pred
+            // disconnect from succ
+            // display message showing that exit process has concluded
         }
     }
 }

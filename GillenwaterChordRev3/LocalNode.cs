@@ -43,7 +43,7 @@ namespace GillenwaterChordRev3
             predNode = this;
             succNode = this;
 
-            var serverTask = Task.Run(() => serverComponent.StartServerAsync());
+            var serverTask = Task.Run(() => serverComponent.StartServer());
         }
 
         // Connect remote node to send messages to
@@ -78,7 +78,7 @@ namespace GillenwaterChordRev3
             }
             else
             {
-                responseMsg = clientComponent.SendMsgAsync(msg);
+                responseMsg = clientComponent.SendMsg(msg);
             }
             return responseMsg;
         }

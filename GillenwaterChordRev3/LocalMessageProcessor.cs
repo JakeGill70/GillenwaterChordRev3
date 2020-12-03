@@ -170,7 +170,7 @@ namespace GillenwaterChordRev3
                 OutputManager.Server.Write("Could not process message. Now passing the buck...");
                 // If the response was NOT processed
                 // Pass the buck
-                response = this.localNode.clientComponent.SendMsgAsync(msg);
+                response = this.localNode.clientComponent.SendMsg(msg);
                 OutputManager.Server.Write("Someone else could do it!");
             }
 
