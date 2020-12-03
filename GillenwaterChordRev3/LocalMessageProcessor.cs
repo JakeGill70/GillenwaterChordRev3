@@ -34,9 +34,9 @@ namespace GillenwaterChordRev3
             string myId = this.localNode.Id;
             string myPredId = this.localNode.predNode.Id;
             bool normalCase = string.Compare(myId, recId) <= 0;
-            bool isLargerThanSelf = (string.Compare(myId, recId) > 0);
-            bool isLargerThanPred = (string.Compare(myPredId, recId) > 0);
-            bool isPredLargerThanSelf = (string.Compare(myPredId, myId) > 0);
+            bool isLargerThanSelf = (string.Compare(myId, recId) >= 0);
+            bool isLargerThanPred = (string.Compare(myPredId, recId) >= 0);
+            bool isPredLargerThanSelf = (string.Compare(myPredId, myId) >= 0);
             bool smallestNodeInRingCase = isLargerThanSelf && isLargerThanPred && isPredLargerThanSelf;
             bool isResponsible = normalCase || smallestNodeInRingCase;
             return isResponsible;
@@ -79,13 +79,25 @@ namespace GillenwaterChordRev3
             Message tmp = ProcResourceOwnerRequest(joinPointRequest);
             OutputManager.Server.Write("process awaited");
             Messages.ResourceOwnerResponse joinPointResponse = tmp as Messages.ResourceOwnerResponse;
-            OutputManager.Server.Write("Generating Pred and Succ nodes...");
-            ChordNode succNode = new ChordNode(joinPointResponse.ownerIpAddress, joinPointResponse.ownerPort, joinPointResponse.ownerId);
-            ChordNode predNode = new ChordNode(joinPointResponse.predIpAddress, joinPointResponse.predPort, joinPointResponse.predId);
-            OutputManager.Server.Write("Generating a response...");
-            Messages.JoinResponse rMsg = new Messages.JoinResponse(this.localNode, succNode, predNode);
-            rMsg.isProcessed = true;
-            OutputManager.Server.Write("Join request processed!");
+            Messages.JoinResponse rMsg; // Used to create the response message later
+
+            if (joinPointResponse == null)
+            {
+                OutputManager.Server.Write("No join point found." + (tmp == null ? "null" : tmp.ToString()));
+                OutputManager.Server.Write("Join request failed!");
+                rMsg = new Messages.JoinResponse(this.localNode, this.localNode, this.localNode);
+                rMsg.isProcessed = false;
+            }
+            else {
+                OutputManager.Server.Write("Generating Pred and Succ nodes...");
+                ChordNode succNode = new ChordNode(joinPointResponse.ownerIpAddress, joinPointResponse.ownerPort, joinPointResponse.ownerId);
+                ChordNode predNode = new ChordNode(joinPointResponse.predIpAddress, joinPointResponse.predPort, joinPointResponse.predId);
+                OutputManager.Server.Write("Generating a response...");
+                rMsg = new Messages.JoinResponse(this.localNode, succNode, predNode);
+                rMsg.isProcessed = true;
+                OutputManager.Server.Write("Join request processed!");
+                
+            }
             return rMsg;
         }
 
