@@ -33,11 +33,14 @@ namespace GillenwaterChordRev3
                     case "info":
                         app.ProcInfo();
                         break;
-                    case "connect":
-                        app.ProcConnect();
-                        break;
                     case "join":
                         app.ProcJoin();
+                        break;
+                    case "add":
+                        app.ProcAddResource();
+                        break;
+                    case "storage":
+                        app.ProcStorage();
                         break;
                 }
             }
@@ -47,6 +50,7 @@ namespace GillenwaterChordRev3
         }
 
         void ProcInfo() {
+            OutputManager.Ui.Write("Self port: " + localNode.Port);
             OutputManager.Ui.Write("Pred port: " + localNode.predNode.Port);
             OutputManager.Ui.Write("Succ port: " + localNode.succNode.Port);
         }
@@ -103,6 +107,38 @@ namespace GillenwaterChordRev3
             UpdateNodeResponse uPredResponse = (localNode.SendMessage(uPredRequest)) as UpdateNodeResponse;
             // TODO: Ensure that update was successful
             OutputManager.Ui.Write("Successfully joined to ring!");
+        }
+
+        void ProcAddResource() {
+            OutputManager.Ui.Write("What is the name of this new resouce?");
+            string resourceName = Console.ReadLine();
+            OutputManager.Ui.Write("What is the contents of this new resouce?");
+            string resourceContent = Console.ReadLine();
+            string resourceId = EZHash.GetHashString(resourceName);
+            Messages.AddResourceRequest addResourceReq = new AddResourceRequest(this.localNode, resourceId, resourceName, resourceContent);
+            Messages.Message tmpResponse = localNode.SendMessage(addResourceReq);
+            Messages.AddResourceResponse addResourceResponse = new AddResourceResponse(tmpResponse.ToString());
+            if (addResourceResponse.resourceAddedSuccessfully)
+            {
+                OutputManager.Ui.Write($"The resource \"{resourceName}\" was added successfully.");
+            }
+            else {
+                OutputManager.Ui.Write($"Failed to add the resource \"{resourceName}\"");
+            }
+        }
+
+        void ProcStorage() {
+            string[] resourcesInLocalStorage = this.localNode.GetLocalResourceNames();
+            if (resourcesInLocalStorage.Length == 0)
+            {
+                OutputManager.Ui.Write("No resources are stored on this node.");
+            }
+            else {
+                for (int i = 0; i < resourcesInLocalStorage.Length; i++)
+                {
+                    OutputManager.Ui.Write($"\t{i+1}. {resourcesInLocalStorage[i]}");
+                }
+            }
         }
     }
 }

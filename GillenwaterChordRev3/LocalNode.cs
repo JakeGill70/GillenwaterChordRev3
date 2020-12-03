@@ -24,7 +24,7 @@ namespace GillenwaterChordRev3
         public readonly IMessageProcessor msgProccessor;
 
         // Used for storing local resources
-        private readonly Dictionary<string, string> localResources;
+        private readonly Dictionary<string, Tuple<string,string>> localResources;
 
         // Predecessor Node
         public ChordNode predNode;
@@ -35,7 +35,7 @@ namespace GillenwaterChordRev3
         // string localIpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString()
         public LocalNode(int port) : base(Dns.GetHostEntry(Dns.GetHostName()).AddressList[0].ToString(), port)
         {
-            localResources = new Dictionary<string, string>();
+            localResources = new Dictionary<string, Tuple<string, string>>();
             msgProccessor = new LocalMessageProcessor(this);
             serverComponent = new AsynchronousServer(port, msgProccessor);
             clientComponent = new AsynchronousClient();
@@ -64,22 +64,39 @@ namespace GillenwaterChordRev3
 
         // Send a Message to a remote node
         public Message SendMessage(Message msg) {
-            Message responseMsg = clientComponent.SendMsgAsync(msg);
-            return responseMsg;
+            if (msg is AddResourceRequest && this.succNode.Id == this.Id) {
+                AddResourceRequest arm = msg as AddResourceRequest;
+                SetLocalResource(arm.resourceId, arm.resourceName, arm.resourceContent);
+                AddResourceResponse r = new AddResourceResponse(this, arm.resourceId, arm.resourceName);
+                return r;
+            }
+            else {
+                Message responseMsg = clientComponent.SendMsgAsync(msg);
+                return responseMsg;
+            }
         }
 
         // Retrive a local resource by Id
         public string GetLocalResource(string resourceId)
         {
-            string resource = null;
+            Tuple<string,string> resource = null;
             localResources.TryGetValue(resourceId, out resource);
-            return resource;
+            return resource.Item2; // Item 2 is the resource content, item 1 is the resource name
         }
 
         // Assigns a local resource
         public void SetLocalResource(string resourceId, string resourceName, string resourceContent)
         {
-            localResources.Add(resourceId, resourceContent);
+            localResources.Add(resourceId, new Tuple<string, string>(resourceName, resourceContent));
+        }
+
+        public string[] GetLocalResourceNames() {
+            List<string> recNames = new List<string>();
+            foreach (var rec in localResources) {
+                recNames.Add(rec.Value.Item1); // item 1 is the resource name
+            }
+            recNames.Sort();
+            return recNames.ToArray();
         }
     }
 }
