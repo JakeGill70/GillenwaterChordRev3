@@ -18,6 +18,8 @@ namespace GillenwaterChordRev3.Messages
         UpdatePredNodeRequest,
         UpdateSuccNodeRequest,
         UpdateNodeResponse,
+        GetResourceRequest,
+        GetResourceResponse,
         Disconnect
     }
 }
