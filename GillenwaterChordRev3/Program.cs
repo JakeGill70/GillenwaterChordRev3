@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Threading.Tasks;
 using GillenwaterChordRev3.Messages;
 
@@ -162,7 +163,7 @@ namespace GillenwaterChordRev3
             }
         }
 
-        void ProcExit() { 
+        void ProcExit() {
             // display message showing that exit process has started
             // Update current pred's succ to current succ
             // Update current succ's pred to current pred
@@ -172,6 +173,68 @@ namespace GillenwaterChordRev3
             // disconnect from pred
             // disconnect from succ
             // display message showing that exit process has concluded
+            FinalMessageQueue<FinalMessage> fmq = new FinalMessageQueue<FinalMessage>();
         }
+    }
+}
+
+public interface IFinalMessageQueue<IComparable> : System.Collections.ICollection {
+    // To begin, because nothing is known about the Message class, I can see 
+    // no reason to restrict this class to only work with the Message class. 
+    // Instead, I have set up this queue to work with any class that implements 
+    // at least IComparable, for reasons explained below.
+
+    // I am assuming that the queue should really be a priority queue decided
+    // by comparing some internals of the message class. From that, I concluded 
+    // that the Message class must implement at least IComparable. This is 
+    // necessary for this class to compare message to determine their relative 
+    // priority within the queue.
+
+    // Next, notice that this interface inherits from ICollection. This forces 
+    // the implementation of most commonly used collection methods and properties. 
+    // As well as some that assist with data syschronization. More information 
+    // about this interface and what it requires can be found on the microsoft 
+    // documentation website, here:
+    // https://docs.microsoft.com/en-us/dotnet/api/system.collections.icollection?view=net-5.0#remarks
+
+    // This is a blocking method for retrieving the first item from a queue.
+    // This method returns the next item from the queue and removes it.
+    // This method was named "get" by Maarten van Steen and Andrew Tanenbaum in
+    // their book "Distributed Systems". I felt Dequeue was a more appropriate.
+    public IComparable Dequeue();
+
+    // Notice that each of the following asynchronous methods should be 
+    // implemented with the "async" keyword, as denoted by convention in their 
+    // name. In C#, you cannot force a method to be implemented with the "async" 
+    // keyword because the keyword can only be added to method headers
+    // with an associated method body which does not exists in an interface.
+
+    // This is a asynchonrous method for adding messages to a queue.
+    // This method was named "put" by Maarten van Steen and Andrew Tanenbaum in
+    // their book "Distributed Systems". I felt EnqueueAsync was a more appropriate.
+    public Task EnqueueAsync(IComparable obj);
+
+    // This is a asynchonrous method for retrieving the first item from a queue.
+    // This method returns the next item from the queue and removes it.
+    // This method was named "poll" by Maarten van Steen and Andrew Tanenbaum in
+    // their book "Distributed Systems". I felt DequeueAsync was a more appropriate.
+    public Task<IComparable> DequeueAsync(IComparable obj);
+
+    // This is an event for whenever a new message is added to the queue.
+    // This event is necessary for a publish-subscribe style design.
+    public event EventHandler Notify;
+}
+
+
+public class FinalMessageQueue<IComparable> : IFinalMessageQueue<IComparable>
+{
+    
+}
+
+public class FinalMessage : IComparable<FinalMessage>
+{
+    public int CompareTo(FinalMessage obj)
+    {
+        throw new NotImplementedException();
     }
 }
